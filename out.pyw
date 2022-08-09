@@ -1,11 +1,14 @@
 import re
 import sys
 import time
+from urllib import request
 import pyautogui
 from google.cloud import speech
 import pyaudio
 from six.moves import queue
 import pyperclip
+import requests
+
 # Audio recording parameters
 STREAMING_LIMIT = 240000  # 4 minutes
 SAMPLE_RATE = 16000
@@ -173,13 +176,15 @@ def listen_print_loop(responses, stream):
             sys.stdout.write(GREEN)
             sys.stdout.write("\033[K")
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
-            if 'enter' in transcript:
-                pyautogui.press('return')
-            else:    
-                pyperclip.copy(transcript)
-                pyautogui.keyDown('ctrl')
-                pyautogui.typewrite('v')
-                pyautogui.keyUp('ctrl')
+            
+            url = 'http://192.168.1.3:8080/writeMessage'
+            data = {'id': sys.argv[1], 'name': sys.argv[2], 'message': str(transcript)}
+
+            x = requests.post(url, json = data)
+
+            print(x.text)
+
+            print('done')
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
